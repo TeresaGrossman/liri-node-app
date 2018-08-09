@@ -6,29 +6,30 @@ var debug = true;
 
 //grab the keys-import modules??
 var keys = require("./keys.js");
-//var twitter = require("twitter");
+var Twitter = require("twitter");
 var Spotify = require("node-spotify-api");
-var request = require("request");//movie
+var request = require("request");
+//var moment = require("moment");
 var fs = require("fs");
 
-//create a command line node to take in two commands
+//create a command line node to take in two commands-NO NEED TO CREATE A COMM LINE JUST USE argv's
 //the first will be the operator(ie. twitter, spotify, request)
-var operator = process.argv[2];
+//var operator = process.argv[2];
 //the second will be 'operand' will be either the movieName, songName, twitter
-var operand = process.argv[3];
+//var operand = process.argv[3];
 
 
 //Add the code required to import the keys.js file and store it in a variable
 var spotify = new Spotify(keys.spotify);
-//var client = new Twitter(keys.twitter);
+var client = new Twitter(keys.twitter);
 //to get info from the command line
 
 
 //Make it so liri.js can take in one of the following commands:
 //Create a switch-case statement.  The switch-case statement will determine which function gets run.
 //like the bank activity and call the different functions
-console.log(operator);
-switch (operator) {
+console.log(process.argv[2]);
+switch (process.argv[2]) {
     case `my-tweets`:
         displayTweets();
         break;
@@ -42,20 +43,32 @@ switch (operator) {
         break;
 
     case `do-what-it-says`:
-        dowhatitsays();
+        doIt();
         break;
 
     default:
         console.log("I don't understand your command!  Please try again.");
 }
-/*If the displayTweets function is called.....
-node liri.js my tweets
+//If the displayTweets function is called  node liri.js my-tweets '<tweets here 20>'
 
 function displayTweets() {
     //This will show your last 20 tweets and when they were created at in your terminal/bash window.
-    var client = new Twitter(keys.twitter);
+    var client = new Twitter(keys.twitterKeys);
+
+    var params = {user_id: 'Teresa08758622', count: '20'};
+
+    client.get('statuses/user_timeline', params, function(error, tweets, response) {
+        if (!error) {
+    for (var i = 0; i < tweets.length; i++){
+        console.log("Tweet #" + (i+1) +"--" + tweets[i].created_at + "--" +tweets[i].text);
+    }
+        }
+        else{
+            if(debug) console.log("error", error);
+                //if debug console.log("response", response);
+            }
+            });
 }
-**************************************************************************************/
 //If the spotifySong function is called  node liri.js movie-this'<movie name here>'
 //declare default as global variable
 var song = "the sign";
@@ -122,25 +135,45 @@ function movieThis() {
         }
     });
     
-    // Then run a request to the OMDB API with the movie specified????is this the same as line 91????
-    //request("http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy", function (error, response) {
-
-
-
-
-    // Parse the body of the site and recover just the imdbRating
-    // (Note: The syntax below for parsing isn't obvious. Just spend a few moments dissecting it).
-    //console.log("The movie's rating is: " + JSON.parse(response.body).imdbRating);
-
+  
     //end of request function
 }
-/*function dowhatitsays() {
+//node liri.js do-what-it-says
+function doIt() {
+//Using the fs Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
+//It should run spotify-this-song for "The Sign," as follows the text in random.txt.
+//Feel free to change the text in that document to test out the feature for other commands.
+//read bank file
+fs.readFile("random.txt", "utf8", function(error, data){
+    //call back function once file is read
 
-    Using the fs Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
+    //if error, console log it and return
+    if(error) return console.log(error);
 
-    It should run spotify-this-song for "I Want it That Way," as follows the text in random.txt.
-    Feel free to change the text in that document to test out the feature for other commands.
-    */
+    //otherwise process instructions (#'s) in file
+    else {
 
+        //console.log("DEBUG", data);
+        //split string of numbers by ", " to remove extra space and add to array
+        var instructions = data.split(",");
+        if(debug) console.log ("instructions", instructions);
 
+        if (instructions.length>1) process.argv[3] = instructions[1];
 
+        switch (instructions[0]) {
+            case 'my-tweets':
+                displayTweets();
+                break;
+            case 'spotify-this-song':
+                spotifySong();
+                break;
+            case 'movie-this':
+                movieDetails();
+                break;
+            default:
+                console.log("I don't understand your command!  Please try again.");
+        }
+    
+    }
+});
+}
