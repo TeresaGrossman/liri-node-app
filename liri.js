@@ -55,54 +55,56 @@ function displayTweets() {
     //This will show your last 20 tweets and when they were created at in your terminal/bash window.
     var client = new Twitter(keys.twitterKeys);
 
-    var params = {user_id: 'Teresa08758622', count: '20'};
+    var params = { user_id: 'Teresa08758622', count: '20' };
 
-    client.get('statuses/user_timeline', params, function(error, tweets, response) {
+    client.get('statuses/user_timeline', params, function (error, tweets, response) {
         if (!error) {
-    for (var i = 0; i < tweets.length; i++){
-        console.log("Tweet #" + (i+1) +"--" + tweets[i].created_at + "--" +tweets[i].text);
-    }
-        }
-        else{
-            if(debug) console.log("error", error);
-                //if debug console.log("response", response);
+            for (var i = 0; i < tweets.length; i++) {
+                console.log("Tweet #" + (i + 1) + "--" + tweets[i].created_at + "--" + tweets[i].text);
             }
-            });
+        }
+        else {
+            if (debug) console.log("error", error);
+            //if debug console.log("response", response);
+        }
+    });
 }
 //If the spotifySong function is called  node liri.js movie-this'<movie name here>'
 //declare default as global variable
 var song = "the sign";
 
 function spotifySong() {
-//If no song is provided then your program will default to "The Sign" by Ace of Base.
+    //If no song is provided then your program will default to "The Sign" by Ace of Base.
 
 
-    if(process.argv.length > 3 && process.argv[3]) {
+    if (process.argv.length > 3 && process.argv[3]) {
         song = process.argv[3];
-        if(debug) console.log("song", song);
+        if (debug) console.log("song", song);
     }
+
+    spotify.search({ type: 'track', query: song }, function (err, data) {
+        if (err) {
+            console.log("Error occured" + err);
+            if (err.status == 401) {
+                console.log("Spotify package is no longer authorized by Spotify Web API");
+            }
+            return;
+        }
+        else {
+            if (debug) console.log("data", data);
+            //This will show(console.log) the following information about the song in your terminal/bash window
+            console.log("Song Name", data.tracks.items[0]);//The song's name
+            console.log("Song Name", data.tracks.items[0].preview_url);//A preview link of the song from Spotify
+            console.log("Song Name", data.tracks.items[0].album.name);//The album that the song is from
+        }
+    
+    });
 
 
 }
-spotify.search({ type: 'track', query: song }, function(err, data){
-    if(err){
-        console.log("Error occured" + err);
-        if(err.status==401){
-            console.log("Spotify package is no longer authorized by Spotify Web API");
-        }
-        return;
-    }
-    else{
-        if(debug) console.log("data", data);
-//This will show(console.log) the following information about the song in your terminal/bash window
-        console.log("Song Name", data.tracks.items[0]);//The song's name
-        console.log("Song Name", data.tracks.items[0].preview_url);//A preview link of the song from Spotify
-        console.log("Song Name", data.tracks.items[0].album.name);//The album that the song is from
-    }
-      
-    });
-  
-    
+
+
+
 
 
 //If the movieThis function is called  node liri.js movie-this'<movie name here>'
@@ -123,7 +125,7 @@ function movieThis() {
     request(queryURL, (error, response, body) => {
         if (!error && response.statusCode === 200) {
             var bodyObj = JSON.parse(body)
-    //This will output the following information to your terminal/bash window:
+            //This will output the following information to your terminal/bash window:
 
             console.log("Title:", bodyObj.Title);//Title of the movie.
             console.log("Released:", bodyObj.Released);//Year the movie came out.
@@ -134,46 +136,46 @@ function movieThis() {
             console.log("Actors:", bodyObj.Actors);//Actors in the movie.
         }
     });
-    
-  
+
+
     //end of request function
 }
 //node liri.js do-what-it-says
 function doIt() {
-//Using the fs Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
-//It should run spotify-this-song for "The Sign," as follows the text in random.txt.
-//Feel free to change the text in that document to test out the feature for other commands.
-//read bank file
-fs.readFile("random.txt", "utf8", function(error, data){
-    //call back function once file is read
+    //Using the fs Node package, LIRI will take the text inside of random.txt and then use it to call one of LIRI's commands.
+    //It should run spotify-this-song for "The Sign," as follows the text in random.txt.
+    //Feel free to change the text in that document to test out the feature for other commands.
+    //read bank file
+    fs.readFile("random.txt", "utf8", function (error, data) {
+        //call back function once file is read
 
-    //if error, console log it and return
-    if(error) return console.log(error);
+        //if error, console log it and return
+        if (error) return console.log(error);
 
-    //otherwise process instructions (#'s) in file
-    else {
+        //otherwise process instructions (#'s) in file
+        else {
 
-        //console.log("DEBUG", data);
-        //split string of numbers by ", " to remove extra space and add to array
-        var instructions = data.split(",");
-        if(debug) console.log ("instructions", instructions);
+            //console.log("DEBUG", data);
+            //split string of numbers by ", " to remove extra space and add to array
+            var instructions = data.split(",");
+            if (debug) console.log("instructions", instructions);
 
-        if (instructions.length>1) process.argv[3] = instructions[1];
+            if (instructions.length > 1) process.argv[3] = instructions[1];
 
-        switch (instructions[0]) {
-            case 'my-tweets':
-                displayTweets();
-                break;
-            case 'spotify-this-song':
-                spotifySong();
-                break;
-            case 'movie-this':
-                movieDetails();
-                break;
-            default:
-                console.log("I don't understand your command!  Please try again.");
+            switch (instructions[0]) {
+                case 'my-tweets':
+                    displayTweets();
+                    break;
+                case 'spotify-this-song':
+                    spotifySong();
+                    break;
+                case 'movie-this':
+                    movieDetails();
+                    break;
+                default:
+                    console.log("I don't understand your command!  Please try again.");
+            }
+
         }
-    
-    }
-});
+    });
 }
